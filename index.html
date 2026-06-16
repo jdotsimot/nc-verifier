@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NC G-Code & DXF Verifier</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts for Outfit Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="21 16 12 21 3 16"></polyline>
+                    <polyline points="21 12 12 17 3 12"></polyline>
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                </svg>
+                <h1>NC & DXF Verifier</h1>
+            </div>
+            <div class="header-controls" style="display: flex; gap: 0.5rem; align-items: center;">
+                <a href="help.html" target="_blank" class="btn-secondary" style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; border-radius: 50%; font-size: 1.1rem; text-decoration: none;" title="User Guide / Help">❓</a>
+                <button class="btn-secondary" onclick="resetAll()">Reset Tool</button>
+            </div>
+        </header>
+
+        <!-- Settings Bar -->
+        <div class="settings-bar">
+            <div class="setting-group">
+                <label for="api-key-input">Gemini API Key:</label>
+                <input type="password" id="api-key-input" placeholder="Paste AI Studio API Key..." style="width: 250px;">
+            </div>
+            <div class="setting-group">
+                <label for="tolerance-input">Matching Tolerance (in):</label>
+                <input type="number" id="tolerance-input" value="0.005" step="0.001" min="0.001" style="width: 80px;">
+            </div>
+            <div class="setting-group">
+                <label for="post-processor-select">Post Processor:</label>
+                <select id="post-processor-select">
+                    <option value="okuma">Okuma OSP</option>
+                    <option value="fanuc">Fanuc / Haas</option>
+                    <option value="mitsubishi">Mitsubishi</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Drag & Drop Zone -->
+        <div class="upload-grid">
+            <div class="upload-card" id="drop-gcode">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+                <div>
+                    <h3>Upload G-Code File(s)</h3>
+                    <p>Drag & drop or click to browse (.nc, .tap, .gcode) - Supports multiple files</p>
+                </div>
+                <input type="file" id="file-gcode" accept=".nc,.tap,.gcode,.txt" style="display: none;" multiple>
+                <div class="file-status" id="status-gcode" style="display: none;">No file loaded</div>
+            </div>
+
+            <div class="upload-card" id="drop-dxf">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <line x1="12" y1="2" x2="12" y2="22"></line>
+                </svg>
+                <div>
+                    <h3>Upload DXF CAD Geometry</h3>
+                    <p>Drag & drop or click to browse (.dxf)</p>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-top: 0.25rem;">(Convert .dwg files to .dxf in AutoCAD before uploading)</span>
+                </div>
+                <input type="file" id="file-dxf" accept=".dxf" style="display: none;">
+                <div class="file-status" id="status-dxf" style="display: none;">No file loaded</div>
+            </div>
+        </div>
+
+        <!-- Main Workspace -->
+        <div class="workspace-grid">
+            <!-- Graphical Toolpath Canvas -->
+            <div class="canvas-container">
+                <div class="canvas-header">
+                    <h3 style="font-weight: 500;">Visual Alignment Overlay</h3>
+                    <div class="canvas-controls">
+                        <label for="canvas-theme-select" style="font-size: 0.75rem; color: var(--text-secondary); align-self: center; margin-right: 0.25rem;">Plot Theme:</label>
+                        <select id="canvas-theme-select" onchange="changeCanvasTheme()" style="background: var(--bg-dark); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; padding: 0.2rem; font-size: 0.75rem; margin-right: 0.5rem; outline: none;">
+                            <option value="light">Light CAD (Blueprint)</option>
+                            <option value="dark">Dark CAD (Console)</option>
+                        </select>
+                        <button class="btn-secondary" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;" onclick="resetCanvasView()">Reset View</button>
+                    </div>
+                </div>
+                <canvas id="canvas-view"></canvas>
+            </div>
+
+            <!-- Audit Logs & Discrepancies -->
+            <div class="audit-panel">
+                <h3 class="audit-section-title">
+                    <span>Audit Log</span>
+                    <span id="audit-summary-badge" style="font-size: 0.8rem; background: var(--border-color); padding: 0.2rem 0.5rem; border-radius: 20px; color: var(--text-secondary);">No Data</span>
+                </h3>
+                
+                <div class="alert-list" id="alert-list">
+                    <div class="alert-item warning" style="border-left-color: var(--warning);">
+                        <div class="alert-title">Pending Files</div>
+                        <div class="alert-desc">Please drag and drop your G-code and DXF file to start the comparison run.</div>
+                    </div>
+                </div>
+
+                <div class="audit-section-title">Active Tool Library</div>
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Tool Num</th>
+                                <th>Comment / Description</th>
+                                <th>Tapping Cycles</th>
+                                <th>Checks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tools-table-body">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: var(--text-secondary);">No tools parsed yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="audit-section-title">Geometry Coordinates List</div>
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Source</th>
+                                <th>X Coord</th>
+                                <th>Y Coord</th>
+                                <th>Diameter</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coords-table-body">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-secondary);">No geometry processed yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Cross Reference Section -->
+        <div class="ai-section">
+            <h3 style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                AI Drawing & Blueprint Cross-Reference
+            </h3>
+            <p style="font-size: 0.875rem; color: var(--text-secondary);">
+                Upload a customer PDF drawing directly, or paste details/requirements below. Gemini will verify G-code tools, speeds, and hole configurations against your blueprint specification.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <label for="file-pdf" style="font-size: 0.875rem; font-weight: 500; color: var(--text-primary); background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><polyline points="9 15 12 12 15 15"></polyline></svg>
+                        Upload PDF Blueprint
+                    </label>
+                    <input type="file" id="file-pdf" accept=".pdf" style="display: none;" onchange="handlePdfUpload(event)">
+                    <span id="pdf-upload-status" style="font-size: 0.875rem; color: var(--text-secondary);">No PDF blueprint loaded</span>
+                </div>
+                <div class="ai-input-area">
+                    <textarea class="ai-text-input" id="blueprint-text" placeholder="Or paste drawing notes manually here... (e.g. Material: 4140 Steel, Tap: 3/8-16 UNC)"></textarea>
+                    <button class="btn-primary" id="btn-run-ai" style="align-self: flex-end; height: fit-content;" onclick="runAICrossReference()">Run AI Analysis</button>
+                </div>
+            </div>
+            <div class="ai-response" id="ai-response-container"></div>
+            <button class="btn-secondary" id="btn-export-ai" style="display: none; align-self: flex-end; margin-top: 0.5rem;" onclick="exportAIReport()">Export Report (.md)</button>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>

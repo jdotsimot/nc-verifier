@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NC Verifier - User Guide & Help</title>
+    <!-- Outfit Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f1115;
+            --bg-card: #181b21;
+            --accent-primary: #3b82f6;
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+            --border-color: #2d3342;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.6;
+            padding: 2.5rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #fff, #9ca3af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 2.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: var(--accent-primary);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        p {
+            color: #d1d5db;
+            margin-bottom: 1rem;
+        }
+
+        .screenshot-container {
+            text-align: center;
+            margin: 2rem 0;
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .screenshot-container img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .screenshot-caption {
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .grid-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 1.25rem;
+            border-radius: 8px;
+        }
+
+        .feature-card h3 {
+            margin-top: 0;
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        ul {
+            margin-left: 1.5rem;
+            color: #d1d5db;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        .color-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .color-box {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .color-box.green { background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success); }
+        .color-box.red { background: rgba(239, 68, 68, 0.2); border: 2px solid var(--error); }
+        .color-box.orange { background: rgba(245, 158, 11, 0.2); border: 2px solid var(--warning); }
+        .color-box.cyan { background: rgba(59, 130, 246, 0.2); border: 2px solid var(--accent-primary); }
+
+        code {
+            background: #27272a;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: #f4f4f5;
+        }
+
+        .footer {
+            margin-top: 3rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <h1>NC Verifier User Guide</h1>
+    <div class="subtitle">Auditing G-Code Coordinates and Tool Parameters Against Manufacturing Drawings</div>
+
+    <div class="screenshot-container">
+        <img src="app_screenshot.png" alt="NC Verifier UI Dashboard Screenshot">
+        <div class="screenshot-caption">Figure 1: NC Verifier Dashboard showing CAD vs G-Code coordinate alignment plot.</div>
+    </div>
+
+    <h2>Overview</h2>
+    <p>
+        NC Verifier is a local, secure helper application designed to audit your G-code programs. It matches canned drilling/tapping cycles against DXF CAD files and compares tools, feeds, speeds, and hole locations against PDF blueprints using Gemini AI.
+    </p>
+
+    <h2>Step-by-Step Workflow</h2>
+    
+    <h3>1. Upload Your NC Programs</h3>
+    <p>
+        CNC jobs are often split into separate programs (e.g. drilling, tapping, chamfering) due to memory constraints or static tool library configurations. 
+        Select <strong>multiple G-code files</strong> at once and drag them into the G-Code upload zone. The parser combines them, maintaining tool logs and coordinate tracking across files.
+    </p>
+
+    <h3>2. Align Geometry (Optional)</h3>
+    <ul>
+        <li><strong>With DXF:</strong> Drag your <code>.dxf</code> CAD file onto the DXF upload zone. The application runs a proximity check within your configured tolerance (default <code>0.005"</code>) and maps coordinates instantly on the canvas.</li>
+        <li><strong>Without DXF (G-Code Only):</strong> If you do not have a DXF file, you can skip this step. The app will enter G-Code Only mode, rendering the active coordinates and tool library from your programs so you can visually verify patterns and run AI audits.</li>
+    </ul>
+
+    <div class="color-legend">
+        <h3>Plot Color Guide</h3>
+        <div class="legend-item">
+            <div class="color-box green"></div>
+            <div><strong>Green Outline:</strong> Matched CAD feature. Coordinates in G-code match a circle in the DXF file.</div>
+        </div>
+        <div class="legend-item">
+            <div class="color-box cyan"></div>
+            <div><strong>Cyan Target (Inner):</strong> The parsed G-code drilling coordinate hit.</div>
+        </div>
+        <div class="legend-item">
+            <div class="color-box red"></div>
+            <div><strong>Red Outline / Cross:</strong> Missed CAD feature. A circle exists in the DXF but was not found in G-code.</div>
+        </div>
+        <div class="legend-item">
+            <div class="color-box orange"></div>
+            <div><strong>Orange Target / Crosshair:</strong> Stray G-code drill location. G-code coordinates have no matching circle in the DXF file.</div>
+        </div>
+    </div>
+
+    <h3>3. Run AI Drawing Analysis</h3>
+    <ol>
+        <li>Paste your Gemini API key in the top configuration bar (stored locally and securely in your browser's <code>localStorage</code>).</li>
+        <li>Upload the customer's blueprint <strong>PDF drawing</strong> in the bottom section.</li>
+        <li>Click <strong>Run AI Analysis</strong>.</li>
+        <li>Gemini will read the PDF blueprint, identify what features your loaded G-code programs are targeting (e.g. mapping T1 to M24 holes), check drill sizes/speeds/feeds, and output a detailed audit report.</li>
+        <li>Click <strong>Export Report (.md)</strong> to save the AI report to your computer as a Markdown file.</li>
+    </ol>
+
+    <h2>Mathematical Tapping Audits</h2>
+    <p>
+        For any tapping tools or cycles (<code>G84</code>), the application calculates the programmed pitch and checks it against standard UNC/UNF sizes:
+    </p>
+    <ul>
+        <li>For feed-per-minute mode (<code>G94</code>): <code>Pitch = Feed Rate / Spindle RPM</code>.</li>
+        <li>For feed-per-revolution mode (<code>G95</code>): <code>Pitch = Feed Rate</code>.</li>
+        <li>Threads-Per-Inch (TPI) is calculated as: <code>TPI = 1 / Pitch</code>.</li>
+    </ul>
+    <p>
+        If the calculated pitch doesn't align with standard thread rules (e.g. 13 TPI for 1/2-13, 16 TPI for 3/8-16), a warning is flagged in the Active Tool table.
+    </p>
+
+    <div class="footer">
+        Steelcraft Technologies © 2026. Internal Programming Support Tool.
+    </div>
+</body>
+</html>
