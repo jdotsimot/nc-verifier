@@ -1016,3 +1016,38 @@ function exportAIReport() {
     link.click();
     document.body.removeChild(link);
 }
+
+function openFeedbackModal() {
+    document.getElementById('feedback-modal').style.display = 'flex';
+}
+
+function closeFeedbackModal() {
+    document.getElementById('feedback-modal').style.display = 'none';
+}
+
+function copyFeedbackEmail() {
+    const email = 'jrsimot@gmail.com';
+    navigator.clipboard.writeText(email).then(() => {
+        const btn = document.getElementById('btn-copy-email');
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.style.color = 'var(--success)';
+        btn.style.borderColor = 'var(--success)';
+        
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.color = '';
+            btn.style.borderColor = '';
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy text: ', err);
+    });
+}
+
+// Close modal when clicking outside of the card
+window.addEventListener('click', (e) => {
+    const modal = document.getElementById('feedback-modal');
+    if (e.target === modal) {
+        closeFeedbackModal();
+    }
+});
